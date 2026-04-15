@@ -200,9 +200,3 @@ The `users` table is auto-migrated at startup with:
 - **DB connection failures**
   - Check `DATABASE_URL` and `POSTGRES_*` values.
   - Ensure database container is healthy.
-
-## Next Improvements (Optional)
-
-- Add a `make run` target for non-Docker local execution.
-- Add a sample Clerk webhook configuration section with dashboard steps.
-- Add end-to-end tests for webhook scenarios.
