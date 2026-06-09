@@ -340,7 +340,7 @@ docker build --target production -t go-api:prod .
 docker run -p 3000:3000 --env-file .env go-api:prod
 ```
 
-Production image builds three binaries (`api`, `consumer`, `runner`). Only `api` is used as the default entrypoint. The `consumer` and `runner` binaries are placeholders for future background workers.
+Production image builds three binaries (`api`). Only `api` is used as the default entrypoint.
 
 ## Database
 

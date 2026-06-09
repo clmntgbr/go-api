@@ -48,20 +48,6 @@ RUN CGO_ENABLED=0 GOOS=linux go build \
     -o api \
     ./cmd/api
 
-# Build the consumer application
-RUN CGO_ENABLED=0 GOOS=linux go build \
-    -a -installsuffix cgo \
-    -ldflags="-w -s" \
-    -o consumer \
-    ./cmd/consumer
-
-# Build the runner application
-RUN CGO_ENABLED=0 GOOS=linux go build \
-    -a -installsuffix cgo \
-    -ldflags="-w -s" \
-    -o runner \
-    ./cmd/runner
-
 # ============================================
 # Production stage - Minimal runtime
 # ============================================
@@ -76,10 +62,8 @@ RUN addgroup -g 1000 appuser && \
 
 WORKDIR /home/appuser
 
-# Copy binaries from builder
+# Copy binary from builder
 COPY --from=builder --chown=appuser:appuser /app/api .
-COPY --from=builder --chown=appuser:appuser /app/consumer .
-COPY --from=builder --chown=appuser:appuser /app/runner .
 
 # Switch to non-root user
 USER appuser
