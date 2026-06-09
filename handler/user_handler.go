@@ -1,33 +1,26 @@
 package handler
 
 import (
-	"go-api/ctxutil"
-	"go-api/service"
+	"go-api/handler/context"
+	"go-api/presenter"
 
 	"github.com/gofiber/fiber/v3"
 )
 
 type UserHandler struct {
-	BaseHandler
-	userService *service.UserService
 }
 
-func NewUserHandler(userService *service.UserService) *UserHandler {
-	return &UserHandler{
-		userService: userService,
-	}
+func NewUserHandler() *UserHandler {
+	return &UserHandler{}
 }
 
 func (h *UserHandler) GetUser(c fiber.Ctx) error {
-	user, err := ctxutil.GetUser(c)
+	user, err := context.GetUser(c)
 	if err != nil {
-		return h.sendUnauthorized(c)
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "Unauthorized",
+		})
 	}
 
-	output, err := h.userService.GetUser(user)
-	if err != nil {
-		return h.sendInternalError(c, err)
-	}
-
-	return c.Status(fiber.StatusOK).JSON(output)
+	return c.Status(fiber.StatusOK).JSON(presenter.NewUserDetailResponse(*user))
 }
