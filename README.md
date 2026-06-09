@@ -271,20 +271,6 @@ cp .env.dist .env
 | `POSTGRES_PASSWORD` | Database password | `random` |
 | `POSTGRES_NAME` | Docker service hostname | `database` |
 
-### RabbitMQ (reserved for future workers)
-
-These variables are loaded by the config but not yet used by the current API. They are prepared for upcoming `consumer` and `runner` binaries referenced in the Dockerfile.
-
-| Variable | Description |
-|---|---|
-| `RABBITMQ_URL` | AMQP connection URL |
-| `RABBITMQ_SECRET_KEY` | Message signing key |
-| `EXCHANGE_NAME` | RabbitMQ exchange name |
-| `CONSUMER_QUEUE_NAME` | Consumer queue name |
-| `CONSUMER_ROUTING_KEY_COMPLETED` | Routing key for completed events |
-| `CONSUMER_ROUTING_KEY_FAILED` | Routing key for failed events |
-| `RUNNER_QUEUE_NAME` | Runner queue name |
-
 ### ngrok (optional, local dev)
 
 | Variable | Description |
