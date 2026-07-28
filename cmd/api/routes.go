@@ -1,22 +1,22 @@
 package main
 
 import (
-	"go-api/cmd/api/wire"
+	"go-api/cmd/api/di"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/healthcheck"
 )
 
-func setupRoutes(app *fiber.App, container *wire.Container) {
+func setupRoutes(app *fiber.App, container *di.Container) {
 	setupHealthChecks(app)
 	setupWebhooks(app, container)
 	setupAPIRoutes(app, container)
 }
 
-func setupWebhooks(app *fiber.App, container *wire.Container) {
-	webhooks := app.Group("/webhook")
+func setupWebhooks(app *fiber.App, container *di.Container) {
+	webhooks := app.Group("/webhooks")
 
-	webhooks.Post("/clerk", container.ClerkMiddleware.Protected(), container.ClerkHandler.Execute)
+	webhooks.Post("/clerk", container.UserWebhookMiddleware.Protected(), container.UserWebhookHandler.Execute)
 }
 
 func setupHealthChecks(app *fiber.App) {
@@ -25,13 +25,13 @@ func setupHealthChecks(app *fiber.App) {
 	app.Get(healthcheck.StartupEndpoint, healthcheck.New())
 }
 
-func setupAPIRoutes(app *fiber.App, container *wire.Container) {
+func setupAPIRoutes(app *fiber.App, container *di.Container) {
 	api := app.Group("/api")
 
 	api.Use(container.AuthenticateMiddleware.Protected())
 	setupUsersRoutes(api, container)
 }
 
-func setupUsersRoutes(api fiber.Router, container *wire.Container) {
+func setupUsersRoutes(api fiber.Router, container *di.Container) {
 	api.Get("/users/me", container.UserHandler.GetUser)
 }

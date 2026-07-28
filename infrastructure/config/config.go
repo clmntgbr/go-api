@@ -54,6 +54,13 @@ func getEnv(key string) string {
 	return ""
 }
 
+func getEnvOrDefault(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
+}
+
 func getEnvBool(key string) bool {
 	value := os.Getenv(key)
 	if value == "" {

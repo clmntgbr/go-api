@@ -1,58 +1,61 @@
+# Production-oriented compose (app + workers).
+# Expects managed/external Postgres, RabbitMQ, object storage, Centrifugo via .env.
+# For local infra (RabbitMQ, MinIO, ngrok, Air, Go caches): use compose.dev.yaml
+
 services:
   api:
     build:
       context: .
       dockerfile: Dockerfile
-      target: development
+      target: production
     container_name: api
+    command: ["./api"]
     ports:
-      - "4000:3000"
-    volumes:
-      - .:/app
-      - /app/tmp
-      - go-modules:/go/pkg/mod
+      - "3000:3000"
     env_file:
       - .env
-    networks:
-      - api
     restart: unless-stopped
 
-  database:
-    container_name: datastore
-    image: postgres:${POSTGRES_VERSION:-16}-alpine
-    healthcheck:
-      test: ["CMD", "pg_isready", "-d", "${POSTGRES_DB:-app}", "-U", "${POSTGRES_USER:-app}"]
-      timeout: 5s
-      retries: 5
-      start_period: 60s
-    ports:
-      - "9543:5432"
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB:-app}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-!ChangeMe!}
-      POSTGRES_USER: ${POSTGRES_USER:-app}
-    volumes:
-      - database_data:/var/lib/postgresql/data:rw
-    networks:
-      - api
+  dispatcher:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: dispatcher
+    command: ["./dispatcher"]
+    env_file:
+      - .env
     restart: unless-stopped
 
-  ngrok:
-    container_name: ngrok
-    image: ngrok/ngrok:latest
-    command: http --url=choice-pretty-leech.ngrok-free.app --host-header=choice-pretty-leech.ngrok-free.app http://api:3000
-    environment:
-      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN}
-    ports:
-      - "4040:4040"
-    networks:
-      - api
+  metadata:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: metadata
+    command: ["./metadata"]
+    env_file:
+      - .env
     restart: unless-stopped
 
-volumes:
-  go-modules:
-  database_data:
+  heuristic:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: heuristic
+    command: ["./heuristic"]
+    env_file:
+      - .env
+    restart: unless-stopped
 
-networks:
-  api:
-    name: go
+  aimodel:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: aimodel
+    command: ["./aimodel"]
+    env_file:
+      - .env
+    restart: unless-stopped

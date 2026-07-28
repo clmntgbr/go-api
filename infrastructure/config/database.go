@@ -11,15 +11,22 @@ import (
 
 func ConnectDatabase(cfg *Config) *gorm.DB {
 	logLevel := logger.Warn
-	// if cfg.Environment == "development" {
-	// 	logLevel = logger.Info
-	// }
+
+	gormLogger := logger.New(
+		log.New(log.Writer(), "\r\n", log.LstdFlags),
+		logger.Config{
+			SlowThreshold:             200 * time.Millisecond,
+			LogLevel:                  logLevel,
+			IgnoreRecordNotFoundError: true,
+			Colorful:                  false,
+		},
+	)
 
 	db, err := gorm.Open(postgres.New(postgres.Config{
 		DSN:                  cfg.DatabaseURL,
 		PreferSimpleProtocol: true,
 	}), &gorm.Config{
-		Logger:      logger.Default.LogMode(logLevel),
+		Logger:      gormLogger,
 		PrepareStmt: false,
 	})
 	if err != nil {
@@ -35,8 +42,6 @@ func ConnectDatabase(cfg *Config) *gorm.DB {
 	sqlDB.SetMaxIdleConns(5)
 	sqlDB.SetConnMaxLifetime(5 * time.Minute)
 	sqlDB.SetConnMaxIdleTime(10 * time.Minute)
-
-	log.Println("database connection pool configured")
 
 	return db
 }

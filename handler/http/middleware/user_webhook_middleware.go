@@ -2,24 +2,24 @@ package middleware
 
 import (
 	"encoding/json"
-	clerkdto "go-api/infrastructure/clerk"
+	"go-api/handler/http/dto"
 	"net/http"
 
 	"github.com/gofiber/fiber/v3"
 	svix "github.com/svix/svix-webhooks/go"
 )
 
-type ClerkMiddleware struct {
+type UserWebhookMiddleware struct {
 	secret string
 }
 
-func NewClerkMiddleware(secret string) *ClerkMiddleware {
-	return &ClerkMiddleware{
+func NewUserWebhookMiddleware(secret string) *UserWebhookMiddleware {
+	return &UserWebhookMiddleware{
 		secret: secret,
 	}
 }
 
-func (m *ClerkMiddleware) Protected() fiber.Handler {
+func (m *UserWebhookMiddleware) Protected() fiber.Handler {
 	return func(c fiber.Ctx) error {
 		wh, err := svix.NewWebhook(m.secret)
 		if err != nil {
@@ -39,7 +39,7 @@ func (m *ClerkMiddleware) Protected() fiber.Handler {
 			})
 		}
 
-		var clerkEvent clerkdto.ClerkEvent
+		var clerkEvent dto.ClerkEvent
 		if err := json.Unmarshal(payload, &clerkEvent); err != nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "invalid payload",

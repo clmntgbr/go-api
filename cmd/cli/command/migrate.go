@@ -19,9 +19,13 @@ func NewMigrateCommand() *cobra.Command {
 			db := config.ConnectDatabase(env)
 
 			err := db.Transaction(func(tx *gorm.DB) error {
-				return tx.AutoMigrate(
+				if err := tx.AutoMigrate(
 					&entity.User{},
-				)
+				); err != nil {
+					return err
+				}
+
+				return nil
 			})
 
 			if err != nil {

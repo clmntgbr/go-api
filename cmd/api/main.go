@@ -1,7 +1,7 @@
 package main
 
 import (
-	"go-api/cmd/api/wire"
+	"go-api/cmd/api/di"
 	"go-api/infrastructure/config"
 	"log"
 	"time"
@@ -9,7 +9,6 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/cors"
 	"github.com/gofiber/fiber/v3/middleware/helmet"
-	"github.com/gofiber/fiber/v3/middleware/limiter"
 	"github.com/gofiber/fiber/v3/middleware/logger"
 )
 
@@ -18,8 +17,8 @@ func main() {
 	db := config.ConnectDatabase(env)
 
 	app := fiber.New(fiber.Config{
-		AppName:       "Go API",
-		ServerHeader:  "Go API",
+		AppName:       "IsAIorNot API",
+		ServerHeader:  "IsAIorNot API",
 		CaseSensitive: true,
 		StrictRouting: true,
 		UnescapePath:  true,
@@ -35,17 +34,6 @@ func main() {
 		MaxAge:           env.CORSMaxAge,
 	}))
 
-	app.Use(limiter.New(limiter.Config{
-		Max:        env.RateLimitMax,
-		Expiration: 1 * time.Minute,
-		LimitReached: func(c fiber.Ctx) error {
-			log.Println("rate limit exceeded: ", c.IP(), c.Path(), c.Method())
-			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
-				"message": "too many requests, please try again later",
-			})
-		},
-	}))
-
 	app.Use(logger.New(logger.Config{
 		Format: "[${ip}]:${port} ${status} - ${method} ${path}\n",
 	}))
@@ -58,7 +46,7 @@ func main() {
 		return err
 	})
 
-	container := wire.NewContainer(db, env)
+	container := di.NewContainer(db, env)
 	setupRoutes(app, container)
 
 	log.Println("🚀 Server is running on port", env.Port)

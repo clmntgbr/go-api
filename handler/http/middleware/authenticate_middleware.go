@@ -1,10 +1,9 @@
 package middleware
 
 import (
-	"go-api/handler/context"
-	authdto "go-api/infrastructure/auth"
+	"go-api/handler/http/context"
 	"go-api/usecase/auth"
-	"go-api/usecase/clerk"
+	"go-api/usecase/identity"
 	"go-api/usecase/user"
 	"strings"
 
@@ -13,14 +12,14 @@ import (
 
 type AuthenticateMiddleware struct {
 	validateTokenUseCase *auth.ValidateTokenUseCase
-	fetchUserUseCase     *clerk.FetchUserUseCase
+	fetchUserUseCase     *identity.FetchUserUseCase
 	createUserUseCase    *user.CreateUserUseCase
 	updateUserUseCase    *user.UpdateUserUseCase
 }
 
 func NewAuthenticateMiddleware(
 	validateTokenUseCase *auth.ValidateTokenUseCase,
-	fetchUserUseCase *clerk.FetchUserUseCase,
+	fetchUserUseCase *identity.FetchUserUseCase,
 	createUserUseCase *user.CreateUserUseCase,
 	updateUserUseCase *user.UpdateUserUseCase,
 ) *AuthenticateMiddleware {
@@ -61,7 +60,7 @@ func (m *AuthenticateMiddleware) Protected() fiber.Handler {
 			})
 		}
 
-		output, err := m.validateTokenUseCase.Execute(c.Context(), authdto.ValidateTokenInput{
+		output, err := m.validateTokenUseCase.Execute(c.Context(), auth.ValidateTokenInput{
 			Token: tokenString,
 		})
 
@@ -79,7 +78,7 @@ func (m *AuthenticateMiddleware) Protected() fiber.Handler {
 				})
 			}
 
-			user, err := m.createUserUseCase.Execute(c.Context(), output.Claims.Subject, clerkUser.FirstName, clerkUser.LastName, clerkUser.Banned)
+			user, err := m.createUserUseCase.Execute(c.Context(), output.Claims.Subject, clerkUser.FirstName, clerkUser.LastName, clerkUser.Banned, clerkUser.Email)
 			if err != nil {
 				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 					"message": "Failed to create user",

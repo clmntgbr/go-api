@@ -1,14 +1,13 @@
-package handler
+package http
 
 import (
-	"go-api/handler/context"
+	"go-api/handler/http/context"
 	"go-api/presenter"
 
 	"github.com/gofiber/fiber/v3"
 )
 
-type UserHandler struct {
-}
+type UserHandler struct{}
 
 func NewUserHandler() *UserHandler {
 	return &UserHandler{}

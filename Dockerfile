@@ -5,8 +5,8 @@ FROM golang:1.25-alpine AS base
 
 WORKDIR /app
 
-# Install git for Go modules
-RUN apk add --no-cache git
+# Install git and ffmpeg for Go modules / video frame extraction
+RUN apk add --no-cache git ffmpeg
 
 # Copy go mod files
 COPY go.mod go.sum ./
@@ -23,8 +23,7 @@ COPY . .
 # ============================================
 FROM base AS development
 
-# Install Air for hot reload
-RUN go install github.com/air-verse/air@latest
+RUN go install github.com/air-verse/air@v1.67.1
 
 RUN go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 ENV PATH="/go/bin:${PATH}"
@@ -37,11 +36,10 @@ CMD ["air", "-c", ".air.toml"]
 
 
 # ============================================
-# Builder stage - Build the binary
+# Builder stage - Build all binaries
 # ============================================
 FROM base AS builder
 
-# Build the server application
 RUN CGO_ENABLED=0 GOOS=linux go build \
     -a -installsuffix cgo \
     -ldflags="-w -s" \
@@ -53,8 +51,8 @@ RUN CGO_ENABLED=0 GOOS=linux go build \
 # ============================================
 FROM alpine:latest AS production
 
-# Install ca-certificates for HTTPS
-RUN apk --no-cache add ca-certificates tzdata
+# Install ca-certificates, ffmpeg for HTTPS and video frame extraction
+RUN apk --no-cache add ca-certificates tzdata ffmpeg
 
 # Create non-root user
 RUN addgroup -g 1000 appuser && \
@@ -62,7 +60,7 @@ RUN addgroup -g 1000 appuser && \
 
 WORKDIR /home/appuser
 
-# Copy binary from builder
+# Copy binaries from builder
 COPY --from=builder --chown=appuser:appuser /app/api .
 
 # Switch to non-root user
